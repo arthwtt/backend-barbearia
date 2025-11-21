@@ -6,7 +6,7 @@ module.exports = {
   async store(req, res) {
     try {
       
-      const { name, email, phone, password, type } = req.body;
+      const { name, email, phone, password } = req.body;
 
       
       const userExists = await User.findOne({ where: { email } });
@@ -23,7 +23,7 @@ module.exports = {
         email,
         phone,
         password: passwordHash, 
-        type 
+        type: 'cliente'
       });
 
       
