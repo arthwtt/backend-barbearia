@@ -14,6 +14,7 @@ module.exports = (sequelize, DataTypes) => {
 
       this.hasMany(models.Appointment, { foreignKey: 'user_id', as: 'clientAppointments' });
       this.hasMany(models.Appointment, { foreignKey: 'barber_id', as: 'barberAppointments' });
+      this.hasMany(models.Service, { foreignKey: 'barber_id', as: 'services' });
 
     }
   }

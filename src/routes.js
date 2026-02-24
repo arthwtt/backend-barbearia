@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const router = express.Router();
 const UserController = require('./controllers/UserController');
 const TokenController = require('./controllers/TokenController');
@@ -9,19 +9,19 @@ const authMiddleware = require('../middlewares/auth');
 /**
  * @swagger
  * tags:
- *   - name: Autenticação
- *     description: Rotas de Login e Cadastro (UC 001 / UC 002)
+ *   - name: Autenticacao
+ *     description: Rotas de login e cadastro (UC 001 / UC 002)
  *   - name: Agendamentos
- *     description: Gerenciamento de horários (UC 003 / UC 004 / UC 005)
+ *     description: Gerenciamento de horarios (UC 003 / UC 004 / UC 005)
  */
 
 /**
  * @swagger
  * /users:
  *   post:
- *     summary: Cadastra um novo usuário (Cliente) - UC 001
+ *     summary: Cadastra um novo usuario (Cliente) - UC 001
  *     tags:
- *       - Autenticação
+ *       - Autenticacao
  *     requestBody:
  *       required: true
  *       content:
@@ -39,9 +39,9 @@ const authMiddleware = require('../middlewares/auth');
  *                 type: string
  *     responses:
  *       '201':
- *         description: Usuário criado com sucesso
+ *         description: Usuario criado com sucesso
  *       '400':
- *         description: Email já cadastrado
+ *         description: Email ja cadastrado
  */
 router.post('/users', UserController.store);
 
@@ -51,7 +51,7 @@ router.post('/users', UserController.store);
  *   post:
  *     summary: Realiza o login e retorna o Token JWT - UC 002
  *     tags:
- *       - Autenticação
+ *       - Autenticacao
  *     requestBody:
  *       required: true
  *       content:
@@ -67,7 +67,7 @@ router.post('/users', UserController.store);
  *       '200':
  *         description: Login realizado com sucesso
  *       '401':
- *         description: Credenciais inválidas
+ *         description: Credenciais invalidas
  */
 router.post('/login', TokenController.store);
 
@@ -92,18 +92,18 @@ router.use(authMiddleware);
  *               barber_id:
  *                 type: integer
  *                 example: 2
- *               date:
+ *               service_id:
+ *                 type: integer
+ *                 example: 1
+ *               start_at:
  *                 type: string
  *                 format: date-time
- *                 example: "2025-10-20T14:00:00Z"
- *               service:
- *                 type: string
- *                 example: "Corte de Cabelo"
+ *                 example: '2025-10-20T14:00:00Z'
  *     responses:
  *       '201':
  *         description: Agendamento criado
  *       '400':
- *         description: Barbeiro não encontrado ou inválido
+ *         description: Barbeiro/servico invalido ou inconsistencia entre servico e barbeiro
  */
 router.post('/appointments', AppointmentController.store);
 
@@ -111,11 +111,19 @@ router.post('/appointments', AppointmentController.store);
  * @swagger
  * /appointments:
  *   get:
- *     summary: Lista agendamentos do usuário logado - UC 004 / UC 006
+ *     summary: Lista agendamentos do usuario logado - UC 004 / UC 006
  *     tags:
  *       - Agendamentos
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           example: all
+ *         required: false
+ *         description: Filtra por status (scheduled, cancelled) ou use all para todos. Sem informar, cancelados sao ocultados.
  *     responses:
  *       '200':
  *         description: Lista retornada com sucesso
@@ -126,7 +134,7 @@ router.get('/appointments', AppointmentController.index);
  * @swagger
  * /appointments/{id}:
  *   delete:
- *     summary: Cancela um agendamento - UC 005
+ *     summary: Cancela um agendamento (status = cancelled) - UC 005
  *     tags:
  *       - Agendamentos
  *     security:
@@ -141,17 +149,21 @@ router.get('/appointments', AppointmentController.index);
  *     responses:
  *       '200':
  *         description: Agendamento cancelado
+ *       '400':
+ *         description: Agendamento ja cancelado
  *       '401':
- *         description: Não autorizado
+ *         description: Nao autorizado
+ *       '404':
+ *         description: Agendamento nao encontrado
  */
 router.delete('/appointments/:id', AppointmentController.delete);
 
 router.get('/dashboard', (req, res) => {
-    return res.status(200).json({
-        message: 'Bem vindo a área logada',
-        userId: req.userId,
-        userType: req.userType
-    });
+  return res.status(200).json({
+    message: 'Bem vindo a area logada',
+    userId: req.userId,
+    userType: req.userType
+  });
 });
 
 module.exports = router;

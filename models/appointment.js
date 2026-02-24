@@ -14,13 +14,19 @@ module.exports = (sequelize, DataTypes) => {
     
     this.belongsTo(models.User, { foreignKey: 'user_id', as: 'client' });
     this.belongsTo(models.User, { foreignKey: 'barber_id', as: 'barber' });
+    this.belongsTo(models.Service, { foreignKey: 'service_id', as: 'service' });
     }
   }
   Appointment.init({
     date: DataTypes.DATE,
+    start_at: DataTypes.DATE,
     user_id: DataTypes.INTEGER,
     barber_id: DataTypes.INTEGER,
-    service: DataTypes.STRING
+    service_id: DataTypes.INTEGER,
+    status: {
+      type: DataTypes.STRING,
+      defaultValue: 'scheduled'
+    }
   }, {
     sequelize,
     modelName: 'Appointment',
