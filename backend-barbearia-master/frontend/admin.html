@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Administracao da barbearia">
+    <title>BARBER.io - Administracao</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="header barber-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">Administracao</div>
+                <div class="user-info admin-nav-links">
+                    <a href="barber.html" class="btn-login">Agenda</a>
+                    <a href="#" class="btn-login" id="logoutButton">Sair</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container admin-page">
+            <section class="barber-section admin-section">
+                <h2 class="barber-section-title">Configuracoes da Barbearia</h2>
+                <p id="shopSettingsMessage" class="admin-message"></p>
+                <form id="shopSettingsForm" class="admin-form-grid">
+                    <label class="admin-field">
+                        <span>Nome da Barbearia</span>
+                        <input type="text" id="shopName" required>
+                    </label>
+                    <label class="admin-field">
+                        <span>Telefone</span>
+                        <input type="text" id="shopPhone" placeholder="(00) 00000-0000">
+                    </label>
+                    <label class="admin-field admin-field-full">
+                        <span>Endereco</span>
+                        <input type="text" id="shopAddress" placeholder="Rua, numero, bairro">
+                    </label>
+                    <label class="admin-field">
+                        <span>Abertura</span>
+                        <input type="time" id="openAt" required>
+                    </label>
+                    <label class="admin-field">
+                        <span>Fechamento</span>
+                        <input type="time" id="closeAt" required>
+                    </label>
+                    <button type="submit" class="btn-submit admin-submit">Salvar Configuracoes</button>
+                </form>
+            </section>
+
+            <section class="barber-section admin-section">
+                <h2 class="barber-section-title">Gerenciar Barbeiros</h2>
+                <p id="barbersMessage" class="admin-message"></p>
+                <form id="barberForm" class="admin-form-grid">
+                    <label class="admin-field">
+                        <span>Nome</span>
+                        <input type="text" id="barberName" required>
+                    </label>
+                    <label class="admin-field">
+                        <span>E-mail</span>
+                        <input type="email" id="barberEmail" required>
+                    </label>
+                    <label class="admin-field">
+                        <span>Telefone</span>
+                        <input type="text" id="barberPhone">
+                    </label>
+                    <label class="admin-field">
+                        <span>Senha inicial</span>
+                        <input type="password" id="barberPassword" minlength="6" required>
+                    </label>
+                    <button type="submit" class="btn-submit admin-submit">Cadastrar Barbeiro</button>
+                </form>
+                <div class="admin-list-wrap">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nome</th>
+                                <th>E-mail</th>
+                            </tr>
+                        </thead>
+                        <tbody id="barbersTableBody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="barber-section admin-section">
+                <h2 class="barber-section-title">Gerenciar Servicos</h2>
+                <p id="servicesMessage" class="admin-message"></p>
+                <form id="serviceForm" class="admin-form-grid">
+                    <input type="hidden" id="serviceId">
+                    <label class="admin-field">
+                        <span>Servico</span>
+                        <input type="text" id="serviceName" required>
+                    </label>
+                    <label class="admin-field">
+                        <span>Preco (R$)</span>
+                        <input type="number" id="servicePrice" min="0" step="0.01" required>
+                    </label>
+                    <label class="admin-field">
+                        <span>Duracao (min)</span>
+                        <input type="number" id="serviceDuration" min="5" step="5" required>
+                    </label>
+                    <button type="submit" class="btn-submit admin-submit" id="serviceSubmitButton">Adicionar Servico</button>
+                </form>
+                <div class="admin-list-wrap">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Servico</th>
+                                <th>Preco</th>
+                                <th>Duracao</th>
+                                <th>Acoes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="servicesTableBody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="admin.js"></script>
+</body>
+</html>

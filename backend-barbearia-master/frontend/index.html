@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sistema de agendamento online para barbearia">
+    <title>BARBER.io - Agendamento</title>
+    <link rel="stylesheet" href="styles.css">
+  <meta property="og:image" content="https://bolt.new/static/og_default.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://bolt.new/static/og_default.png">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">BARBER.io</div>
+                <div class="user-info">
+                    <a href="meus-agendamentos.html" class="btn-login btn-secondary" id="linkMeusAgendamentos" style="display: none;">Meus Agendamentos</a>
+                    <a href="login.html" class="btn-login" id="authButton">Entrar</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <section class="section services-section">
+                <h2 class="section-title">Escolha o Serviço</h2>
+                <div class="services-grid">
+                    <div class="service-card" data-service="corte" data-price="45.00" data-duration="45">
+                        <div class="service-card-background"></div>
+                        <div class="service-card-content">
+                            <div class="service-icon-large"></div>
+                            <h3 class="service-name">Corte de Cabelo</h3>
+                            <div class="service-details">
+                                <span class="service-duration">
+                                    <strong>Duração</strong> 45 min
+                                </span>
+                                <p class="service-price">R$ 45,00</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="service-card" data-service="barba" data-price="35.00" data-duration="30">
+                        <div class="service-card-background"></div>
+                        <div class="service-card-content">
+                            <div class="service-icon-large"></div>
+                            <h3 class="service-name">Barba</h3>
+                            <div class="service-details">
+                                <span class="service-duration">
+                                    <strong>Duração</strong> 30 min
+                                </span>
+                                <p class="service-price">R$ 35,00</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="service-card" data-service="combo" data-price="70.00" data-duration="75">
+                        <div class="service-card-background"></div>
+                        <div class="service-card-content">
+                            <div class="service-icon-large"></div>
+                            <h3 class="service-name">Corte + Barba</h3>
+                            <div class="service-details">
+                                <span class="service-duration">
+                                    <strong>Duração</strong> 75 min
+                                </span>
+                                <p class="service-price">R$ 70,00</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="service-card" data-service="sobrancelha" data-price="20.00" data-duration="15">
+                        <div class="service-card-background"></div>
+                        <div class="service-card-content">
+                            <div class="service-icon-large"></div>
+                            <h3 class="service-name">Sobrancelha</h3>
+                            <div class="service-details">
+                                <span class="service-duration">
+                                    <strong>Duração</strong> 15 min
+                                </span>
+                                <p class="service-price">R$ 20,00</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section professionals-section">
+                <h2 class="section-title">Escolha o Profissional</h2>
+                <div class="professionals-scroll">
+                    <div class="professional-card" data-professional="joao">
+                        <div class="professional-avatar">JM</div>
+                        <p class="professional-name">João Matos</p>
+                    </div>
+                    <div class="professional-card" data-professional="pedro">
+                        <div class="professional-avatar">PS</div>
+                        <p class="professional-name">Pedro Silva</p>
+                    </div>
+                    <div class="professional-card" data-professional="carlos">
+                        <div class="professional-avatar">CR</div>
+                        <p class="professional-name">Carlos Ribeiro</p>
+                    </div>
+                    <div class="professional-card" data-professional="marcos">
+                        <div class="professional-avatar">ML</div>
+                        <p class="professional-name">Marcos Lima</p>
+                    </div>
+                    <div class="professional-card" data-professional="rafael">
+                        <div class="professional-avatar">RA</div>
+                        <p class="professional-name">Rafael Alves</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section date-section">
+                <h2 class="section-title">Escolha a Data</h2>
+                <div class="dates-scroll">
+                    <div class="date-card" data-date="2026-02-24">
+                        <p class="date-day">Seg</p>
+                        <p class="date-number">24</p>
+                        <p class="date-month">Fev</p>
+                    </div>
+                    <div class="date-card" data-date="2026-02-25">
+                        <p class="date-day">Ter</p>
+                        <p class="date-number">25</p>
+                        <p class="date-month">Fev</p>
+                    </div>
+                    <div class="date-card" data-date="2026-02-26">
+                        <p class="date-day">Qua</p>
+                        <p class="date-number">26</p>
+                        <p class="date-month">Fev</p>
+                    </div>
+                    <div class="date-card" data-date="2026-02-27">
+                        <p class="date-day">Qui</p>
+                        <p class="date-number">27</p>
+                        <p class="date-month">Fev</p>
+                    </div>
+                    <div class="date-card" data-date="2026-02-28">
+                        <p class="date-day">Sex</p>
+                        <p class="date-number">28</p>
+                        <p class="date-month">Fev</p>
+                    </div>
+                    <div class="date-card" data-date="2026-03-01">
+                        <p class="date-day">Sáb</p>
+                        <p class="date-number">01</p>
+                        <p class="date-month">Mar</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section time-section">
+                <h2 class="section-title">Escolha o Horário</h2>
+                <div class="times-grid">
+                    <button class="time-slot" data-time="09:00">09:00</button>
+                    <button class="time-slot" data-time="09:30">09:30</button>
+                    <button class="time-slot" data-time="10:00">10:00</button>
+                    <button class="time-slot" data-time="10:30">10:30</button>
+                    <button class="time-slot" data-time="11:00">11:00</button>
+                    <button class="time-slot" data-time="11:30">11:30</button>
+                    <button class="time-slot" data-time="14:00">14:00</button>
+                    <button class="time-slot" data-time="14:30">14:30</button>
+                    <button class="time-slot" data-time="15:00">15:00</button>
+                    <button class="time-slot" data-time="15:30">15:30</button>
+                    <button class="time-slot" data-time="16:00">16:00</button>
+                    <button class="time-slot" data-time="16:30">16:30</button>
+                    <button class="time-slot" data-time="17:00">17:00</button>
+                    <button class="time-slot" data-time="17:30">17:30</button>
+                    <button class="time-slot" data-time="18:00">18:00</button>
+                    <button class="time-slot" data-time="18:30">18:30</button>
+                </div>
+            </section>
+
+            <div class="spacing-bottom"></div>
+        </div>
+    </main>
+
+    <footer class="booking-summary">
+        <div class="container">
+            <div class="summary-content">
+                <div class="summary-info">
+                    <p class="summary-label">Total</p>
+                    <p class="summary-price" id="totalPrice">R$ 0,00</p>
+                </div>
+                <button class="btn-confirm" id="confirmBtn" disabled>
+                    Confirmar Agendamento
+                </button>
+            </div>
+        </div>
+            <p id="bookingMessage" style="min-height: 20px; margin-top: 8px; color: #fecf46;"></p>
+    
+    </footer>
+
+    <script>
+        (function setupClientPageAuth() {
+            function normalizeUserType(type) {
+                const value = String(type || '').toLowerCase();
+                if (value === 'barbeiro' || value === 'barber') return 'barber';
+                if (value === 'cliente' || value === 'client') return 'client';
+                return value;
+            }
+
+            let user = null;
+            const token = localStorage.getItem('authToken');
+            try {
+                user = JSON.parse(localStorage.getItem('authUser') || 'null');
+            } catch (err) {
+                localStorage.removeItem('authUser');
+            }
+
+            const role = normalizeUserType(user && user.type);
+            if (token && role === 'barber') {
+                window.location.href = 'barber.html';
+                return;
+            }
+
+            const authButton = document.getElementById('authButton');
+            const linkMeusAgendamentos = document.getElementById('linkMeusAgendamentos');
+            if (token && user) {
+                if (role === 'client' && linkMeusAgendamentos) {
+                    linkMeusAgendamentos.style.display = 'inline-block';
+                }
+                authButton.textContent = 'Sair';
+                authButton.href = '#';
+                authButton.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('authUser');
+                    window.location.href = 'login.html';
+                });
+            }
+        })();
+    </script>
+    <script src="script.js"></script>
+
+</body>
+
+</html>
+

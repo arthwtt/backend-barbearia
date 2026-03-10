@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Meus agendamentos - BARBER.io">
+    <title>BARBER.io - Meus Agendamentos</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div> <a href="index.html" class="logo" >BARBER.io</a></div>
+                <div class="user-info">
+                    <a href="index.html" class="btn-login btn-secondary">Novo Agendamento</a>
+                    <a href="login.html" class="btn-login" id="authButton">Entrar</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <section class="section appointments-section">
+                <h2 class="section-title">Meus Agendamentos</h2>
+
+
+                <p id="appointmentsMessage" class="appointments-message"></p>
+                <div id="appointmentsList" class="appointments-list">
+                    <!-- carregado via JS -->
+                </div>
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <p class="empty-state-text">Você ainda não possui agendamentos.</p>
+                    <a href="index.html" class="btn-login">Fazer um agendamento</a>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        const API_BASE_URL = localStorage.getItem('apiBaseUrl') || 'http://localhost:3000';
+
+        function getAuthToken() {
+            return localStorage.getItem('authToken');
+        }
+
+        function getAuthUser() {
+            try {
+                return JSON.parse(localStorage.getItem('authUser') || 'null');
+            } catch (error) {
+                return null;
+            }
+        }
+
+        function normalizeUserType(type) {
+            const value = String(type || '').toLowerCase();
+            if (value === 'barbeiro' || value === 'barber') return 'barber';
+            if (value === 'cliente' || value === 'client') return 'client';
+            return value;
+        }
+
+        function formatCurrency(value) {
+            return 'R$ ' + Number(value || 0).toFixed(2).replace('.', ',');
+        }
+
+        function formatDateTime(value) {
+            if (!value) return '-';
+            const d = new Date(value);
+            if (Number.isNaN(d.getTime())) return String(value);
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            const hours = String(d.getHours()).padStart(2, '0');
+            const minutes = String(d.getMinutes()).padStart(2, '0');
+            return `${day}/${month}/${year} às ${hours}:${minutes}`;
+        }
+
+        function getStatusLabel(status) {
+            const map = { scheduled: 'Agendado', confirmed: 'Confirmado', cancelled: 'Cancelado' };
+            return map[status] || status || 'Agendado';
+        }
+
+        function getStatusClass(status) {
+            if (status === 'cancelled') return 'status-cancelled';
+            if (status === 'confirmed') return 'status-confirmed';
+            return 'status-scheduled';
+        }
+
+        function setMessage(text, isError = false) {
+            const el = document.getElementById('appointmentsMessage');
+            if (!el) return;
+            el.textContent = text || '';
+            el.style.color = isError ? '#ff6b6b' : '#aaa';
+        }
+
+        async function fetchAppointments() {
+            const token = getAuthToken();
+            if (!token) throw new Error('Faça login para ver seus agendamentos.');
+
+            const url = `${API_BASE_URL}/appointments`;
+            const res = await fetch(url, {
+                headers: { Authorization: 'Bearer ' + token }
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                throw new Error(data.error || 'Erro ao buscar agendamentos.');
+            }
+            return data;
+        }
+
+        async function cancelAppointment(id) {
+            const token = getAuthToken();
+            if (!token) throw new Error('Faça login para cancelar.');
+
+            const res = await fetch(`${API_BASE_URL}/appointments/${id}`, {
+                method: 'DELETE',
+                headers: { Authorization: 'Bearer ' + token }
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                throw new Error(data.error || 'Erro ao cancelar agendamento.');
+            }
+            return data;
+        }
+
+        function renderAppointmentCard(apt) {
+            const barberName = apt.barber && apt.barber.name ? apt.barber.name : 'Barbeiro';
+            const serviceName = apt.service && apt.service.name ? apt.service.name : 'Serviço';
+            const price = apt.service && apt.service.price != null ? formatCurrency(apt.service.price) : '';
+            const status = apt.status || 'scheduled';
+            const canCancel = status !== 'cancelled';
+
+            return `
+                <div class="appointment-card appointment-card-client ${getStatusClass(status)}" data-id="${apt.id}">
+                    <div class="appointment-details">
+                        <h3 class="appointment-service">${serviceName}</h3>
+                        <p class="appointment-barber">Com ${barberName}</p>
+                        <p class="appointment-datetime">${formatDateTime(apt.start_at)}</p>
+                        ${price ? `<p class="appointment-price">${price}</p>` : ''}
+                        <span class="appointment-status ${getStatusClass(status)}">${getStatusLabel(status)}</span>
+                    </div>
+                    ${canCancel ? `<button type="button" class="btn-cancel-appointment" data-id="${apt.id}">Cancelar</button>` : ''}
+                </div>
+            `;
+        }
+
+        function renderAppointments(appointments) {
+            const list = document.getElementById('appointmentsList');
+            const empty = document.getElementById('emptyState');
+            if (!list) return;
+
+            if (!appointments.length) {
+                list.innerHTML = '';
+                if (empty) {
+                    empty.style.display = 'block';
+                    empty.querySelector('.empty-state-text').textContent = 'Você ainda não possui agendamentos.';
+                }
+                return;
+            }
+
+            list.innerHTML = appointments.map(renderAppointmentCard).join('');
+            if (empty) {
+                empty.style.display = 'none';
+            }
+
+            document.querySelectorAll('.btn-cancel-appointment').forEach(btn => {
+                btn.addEventListener('click', async function () {
+                    const id = Number(this.dataset.id);
+                    if (!id || !confirm('Deseja realmente cancelar este agendamento?')) return;
+                    try {
+                        this.disabled = true;
+                        this.textContent = 'Cancelando...';
+                        await cancelAppointment(id);
+                        setMessage('Agendamento cancelado com sucesso.', false);
+                        loadAppointments();
+                    } catch (err) {
+                        setMessage(err.message || 'Erro ao cancelar.', true);
+                        this.disabled = false;
+                        this.textContent = 'Cancelar';
+                    }
+                });
+            });
+        }
+
+        async function loadAppointments() {
+            setMessage('Carregando...');
+            document.getElementById('appointmentsList').innerHTML = '';
+
+            try {
+                const appointments = await fetchAppointments();
+                setMessage('');
+                renderAppointments(appointments);
+            } catch (err) {
+                setMessage(err.message || 'Erro ao carregar agendamentos.', true);
+                document.getElementById('appointmentsList').innerHTML = '';
+                document.getElementById('emptyState').style.display = 'none';
+            }
+        }
+
+        function setupAuth() {
+            const user = getAuthUser();
+            const token = getAuthToken();
+            const role = normalizeUserType(user && user.type);
+
+            if (token && role === 'barber') {
+                window.location.href = 'barber.html';
+                return;
+            }
+
+            if (!token || !user) {
+                window.location.href = 'login.html?redirect=meus-agendamentos.html';
+                return;
+            }
+
+            const authBtn = document.getElementById('authButton');
+            if (authBtn) {
+                authBtn.textContent = 'Sair';
+                authBtn.href = '#';
+                authBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('authUser');
+                    window.location.href = 'login.html';
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            setupAuth();
+            loadAppointments();
+        });
+    </script>
+</body>
+</html>
