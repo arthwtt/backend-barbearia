@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Login - BARBER.io">
+    <title>BARBER.io - Login</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div> <a href="index.html" class="logo" >BARBER.io</a></div>
+                <div class="user-info">
+                    <a href="index.html" class="btn-login">Voltar</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="login-container">
+        <div class="login-card">
+            <h2>Entrar</h2>
+            <form id="loginForm">
+                <div class="input-group">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" class="login-input" placeholder="seu@exemplo.com" required>
+                </div>
+                <div class="input-group">
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" class="login-input" placeholder="********" required>
+                </div>
+                <p id="loginMessage" style="min-height: 20px; color: #d32f2f; margin: 8px 0 0 0;"></p>
+                <div class="form-row">
+                    <button type="submit" class="btn-submit">Entrar</button>
+                </div>
+                <p class="aux-links">
+                    <a href="#" class="link-forgot">Esqueceu a senha?</a><br>
+                    <a href="register.html" class="link-register">Ainda nao tem conta? Cadastre-se</a>
+                </p>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        const API_BASE_URL = localStorage.getItem('apiBaseUrl') || 'http://localhost:3000';
+
+        function normalizeUserType(type) {
+            const value = String(type || '').toLowerCase();
+            if (value === 'barbeiro' || value === 'barber') return 'barber';
+            if (value === 'cliente' || value === 'client') return 'client';
+            return value;
+        }
+
+        function redirectByRole(user) {
+            const params = new URLSearchParams(window.location.search);
+            const redirect = params.get('redirect');
+            const role = normalizeUserType(user && user.type);
+            if (role === 'barber') {
+                window.location.href = 'barber.html';
+                return;
+            }
+            if (role === 'client' && redirect && (redirect === 'meus-agendamentos.html' || redirect.startsWith('meus-agendamentos'))) {
+                window.location.href = 'meus-agendamentos.html';
+                return;
+            }
+            window.location.href = 'index.html';
+        }
+
+        function setLoginMessage(message, isError = true) {
+            const messageElement = document.getElementById('loginMessage');
+            messageElement.textContent = message;
+            messageElement.style.color = isError ? '#d32f2f' : '#2e7d32';
+        }
+
+        async function handleLoginSubmit(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const submitButton = document.querySelector('#loginForm .btn-submit');
+
+            if (!email || !password) {
+                setLoginMessage('Preencha e-mail e senha.');
+                return;
+            }
+
+            setLoginMessage('');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Entrando...';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok) {
+                    const backendMessage = data && data.error ? data.error : 'Falha ao realizar login.';
+                    throw new Error(backendMessage);
+                }
+
+                localStorage.setItem('authToken', data.token);
+                localStorage.setItem('authUser', JSON.stringify(data.user));
+
+                setLoginMessage('Login realizado com sucesso.', false);
+                redirectByRole(data.user);
+            } catch (error) {
+                setLoginMessage(error.message || 'Erro de conexao com o servidor.');
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Entrar';
+            }
+        }
+
+        (function autoRedirectIfLogged() {
+            try {
+                const savedUser = JSON.parse(localStorage.getItem('authUser') || 'null');
+                const savedToken = localStorage.getItem('authToken');
+                if (savedUser && savedToken) {
+                    redirectByRole(savedUser);
+                }
+            } catch (err) {
+                localStorage.removeItem('authUser');
+                localStorage.removeItem('authToken');
+            }
+        })();
+
+        (function prefillEmailFromQuery() {
+            const params = new URLSearchParams(window.location.search);
+            const email = params.get('email');
+            if (!email) return;
+            const emailInput = document.getElementById('email');
+            emailInput.value = email;
+            document.getElementById('password').focus();
+        })();
+
+        document.getElementById('loginForm').addEventListener('submit', handleLoginSubmit);
+    </script>
+</body>
+</html>

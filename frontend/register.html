@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Cadastro - BARBER.io">
+    <title>BARBER.io - Cadastro</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">BARBER.io</div>
+                <div class="user-info">
+                    <a href="login.html" class="btn-login">Voltar para Login</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="login-container">
+        <div class="login-card">
+            <h2>Criar Conta</h2>
+            <form id="registerForm">
+                <div class="input-group">
+                    <label for="name">Nome</label>
+                    <input type="text" id="name" class="login-input" placeholder="Seu nome completo" required>
+                </div>
+                <div class="input-group">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" class="login-input" placeholder="seu@exemplo.com" required>
+                </div>
+                <div class="input-group">
+                    <label for="phone">Telefone</label>
+                    <input type="text" id="phone" class="login-input" placeholder="(00) 00000-0000" required>
+                </div>
+                <div class="input-group">
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" class="login-input" placeholder="********" required>
+                </div>
+                <div class="input-group">
+                    <label for="confirmPassword">Confirmar senha</label>
+                    <input type="password" id="confirmPassword" class="login-input" placeholder="********" required>
+                </div>
+                <p id="registerMessage" style="min-height: 20px; color: #d32f2f; margin: 8px 0 0 0;"></p>
+                <div class="form-row">
+                    <button type="submit" class="btn-submit">Cadastrar</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        const API_BASE_URL = localStorage.getItem('apiBaseUrl') || 'http://localhost:3000';
+
+        function setRegisterMessage(message, isError = true) {
+            const messageElement = document.getElementById('registerMessage');
+            messageElement.textContent = message;
+            messageElement.style.color = isError ? '#d32f2f' : '#2e7d32';
+        }
+
+        async function handleRegisterSubmit(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const confirmPassword = document.getElementById('confirmPassword').value.trim();
+            const submitButton = document.querySelector('#registerForm .btn-submit');
+
+            if (!name || !email || !phone || !password || !confirmPassword) {
+                setRegisterMessage('Preencha todos os campos.');
+                return;
+            }
+
+            if (password.length < 6) {
+                setRegisterMessage('A senha precisa ter pelo menos 6 caracteres.');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                setRegisterMessage('As senhas nao coincidem.');
+                return;
+            }
+
+            setRegisterMessage('');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Cadastrando...';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/users`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, email, phone, password })
+                });
+
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok) {
+                    const backendMessage = data && data.error ? data.error : 'Falha ao realizar cadastro.';
+                    throw new Error(backendMessage);
+                }
+
+                setRegisterMessage('Cadastro realizado com sucesso. Redirecionando para login...', false);
+                setTimeout(() => {
+                    window.location.href = `login.html?email=${encodeURIComponent(email)}`;
+                }, 800);
+            } catch (error) {
+                setRegisterMessage(error.message || 'Erro de conexao com o servidor.');
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Cadastrar';
+            }
+        }
+
+        document.getElementById('registerForm').addEventListener('submit', handleRegisterSubmit);
+    </script>
+</body>
+</html>
