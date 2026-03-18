@@ -14,8 +14,8 @@ const frontendPath = path.resolve(__dirname, 'frontend');
 app.use(express.json());
 app.use(cors());
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-app.use(routes);
 app.use(express.static(frontendPath));
+app.use(routes);
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(frontendPath, 'index.html'));
