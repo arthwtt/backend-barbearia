@@ -1,4 +1,4 @@
-const API_BASE_URL = localStorage.getItem('apiBaseUrl') || 'http://localhost:3000';
+const API_BASE_URL = localStorage.getItem('apiBaseUrl') || window.location.origin;
 
 const state = {
   selectedService: null,

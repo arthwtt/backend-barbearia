@@ -1,4 +1,4 @@
-const API_BASE_URL = localStorage.getItem('apiBaseUrl') || 'http://localhost:3000';
+const API_BASE_URL = localStorage.getItem('apiBaseUrl') || window.location.origin;
 
 function normalizeUserType(type) {
   const value = String(type || '').toLowerCase();
