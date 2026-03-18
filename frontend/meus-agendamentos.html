@@ -11,7 +11,7 @@
     <header class="header">
         <div class="container">
             <div class="header-content">
-                <div> <a href="index.html" class="logo" >BARBER.io</a></div>
+                <div><a href="index.html" class="logo">BARBER.io</a></div>
                 <div class="user-info">
                     <a href="index.html" class="btn-login btn-secondary">Novo Agendamento</a>
                     <a href="login.html" class="btn-login" id="authButton">Entrar</a>
@@ -24,14 +24,10 @@
         <div class="container">
             <section class="section appointments-section">
                 <h2 class="section-title">Meus Agendamentos</h2>
-
-
                 <p id="appointmentsMessage" class="appointments-message"></p>
-                <div id="appointmentsList" class="appointments-list">
-                    <!-- carregado via JS -->
-                </div>
+                <div id="appointmentsList" class="appointments-list"></div>
                 <div id="emptyState" class="empty-state" style="display: none;">
-                    <p class="empty-state-text">Você ainda não possui agendamentos.</p>
+                    <p class="empty-state-text">Voce ainda nao possui agendamentos.</p>
                     <a href="index.html" class="btn-login">Fazer um agendamento</a>
                 </div>
             </section>
@@ -73,7 +69,7 @@
             const year = d.getFullYear();
             const hours = String(d.getHours()).padStart(2, '0');
             const minutes = String(d.getMinutes()).padStart(2, '0');
-            return `${day}/${month}/${year} às ${hours}:${minutes}`;
+            return `${day}/${month}/${year} as ${hours}:${minutes}`;
         }
 
         function getStatusLabel(status) {
@@ -96,10 +92,9 @@
 
         async function fetchAppointments() {
             const token = getAuthToken();
-            if (!token) throw new Error('Faça login para ver seus agendamentos.');
+            if (!token) throw new Error('Faca login para ver seus agendamentos.');
 
-            const url = `${API_BASE_URL}/appointments`;
-            const res = await fetch(url, {
+            const res = await fetch(`${API_BASE_URL}/appointments`, {
                 headers: { Authorization: 'Bearer ' + token }
             });
             const data = await res.json().catch(() => ({}));
@@ -111,7 +106,7 @@
 
         async function cancelAppointment(id) {
             const token = getAuthToken();
-            if (!token) throw new Error('Faça login para cancelar.');
+            if (!token) throw new Error('Faca login para cancelar.');
 
             const res = await fetch(`${API_BASE_URL}/appointments/${id}`, {
                 method: 'DELETE',
@@ -124,11 +119,31 @@
             return data;
         }
 
+        async function confirmAppointment(id) {
+            const token = getAuthToken();
+            if (!token) throw new Error('Faca login para confirmar.');
+
+            const res = await fetch(`${API_BASE_URL}/appointments/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: 'Bearer ' + token
+                },
+                body: JSON.stringify({ status: 'confirmed' })
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                throw new Error(data.error || 'Erro ao confirmar agendamento.');
+            }
+            return data;
+        }
+
         function renderAppointmentCard(apt) {
             const barberName = apt.barber && apt.barber.name ? apt.barber.name : 'Barbeiro';
-            const serviceName = apt.service && apt.service.name ? apt.service.name : 'Serviço';
+            const serviceName = apt.service && apt.service.name ? apt.service.name : 'Servico';
             const price = apt.service && apt.service.price != null ? formatCurrency(apt.service.price) : '';
             const status = apt.status || 'scheduled';
+            const canConfirm = status === 'scheduled';
             const canCancel = status !== 'cancelled';
 
             return `
@@ -140,7 +155,10 @@
                         ${price ? `<p class="appointment-price">${price}</p>` : ''}
                         <span class="appointment-status ${getStatusClass(status)}">${getStatusLabel(status)}</span>
                     </div>
-                    ${canCancel ? `<button type="button" class="btn-cancel-appointment" data-id="${apt.id}">Cancelar</button>` : ''}
+                    <div class="appointment-actions">
+                        ${canConfirm ? `<button type="button" class="btn-confirm-appointment" data-id="${apt.id}">Confirmar</button>` : ''}
+                        ${canCancel ? `<button type="button" class="btn-cancel-appointment" data-id="${apt.id}">Cancelar</button>` : ''}
+                    </div>
                 </div>
             `;
         }
@@ -154,7 +172,7 @@
                 list.innerHTML = '';
                 if (empty) {
                     empty.style.display = 'block';
-                    empty.querySelector('.empty-state-text').textContent = 'Você ainda não possui agendamentos.';
+                    empty.querySelector('.empty-state-text').textContent = 'Voce ainda nao possui agendamentos.';
                 }
                 return;
             }
@@ -164,7 +182,7 @@
                 empty.style.display = 'none';
             }
 
-            document.querySelectorAll('.btn-cancel-appointment').forEach(btn => {
+            document.querySelectorAll('.btn-cancel-appointment').forEach((btn) => {
                 btn.addEventListener('click', async function () {
                     const id = Number(this.dataset.id);
                     if (!id || !confirm('Deseja realmente cancelar este agendamento?')) return;
@@ -172,12 +190,30 @@
                         this.disabled = true;
                         this.textContent = 'Cancelando...';
                         await cancelAppointment(id);
-                        setMessage('Agendamento cancelado com sucesso.', false);
+                        setMessage('Agendamento cancelado com sucesso.');
                         loadAppointments();
                     } catch (err) {
                         setMessage(err.message || 'Erro ao cancelar.', true);
                         this.disabled = false;
                         this.textContent = 'Cancelar';
+                    }
+                });
+            });
+
+            document.querySelectorAll('.btn-confirm-appointment').forEach((btn) => {
+                btn.addEventListener('click', async function () {
+                    const id = Number(this.dataset.id);
+                    if (!id) return;
+                    try {
+                        this.disabled = true;
+                        this.textContent = 'Confirmando...';
+                        await confirmAppointment(id);
+                        setMessage('Agendamento confirmado com sucesso.');
+                        loadAppointments();
+                    } catch (err) {
+                        setMessage(err.message || 'Erro ao confirmar.', true);
+                        this.disabled = false;
+                        this.textContent = 'Confirmar';
                     }
                 });
             });

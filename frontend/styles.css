@@ -846,6 +846,30 @@ body {
     opacity: 0.7;
 }
 
+.appointment-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+}
+
+.btn-confirm-appointment {
+    background-color: transparent;
+    border: 2px solid #7ed957;
+    color: #7ed957;
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: var(--border-radius);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+
+.btn-confirm-appointment:hover {
+    background-color: #7ed957;
+    color: var(--color-black);
+}
+
 .btn-cancel-appointment {
     background-color: transparent;
     border: 2px solid #ff6b6b;

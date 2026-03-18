@@ -194,10 +194,18 @@ module.exports = {
 
       const normalizedUserType = String(userType || '').toLowerCase();
       const isBarber = normalizedUserType === 'barbeiro' || normalizedUserType === 'barber';
+      const isResponsibleBarber = isBarber && Number(appointment.barber_id) === Number(userId);
+      const isClientOwner = Number(appointment.user_id) === Number(userId);
 
-      if (!isBarber || Number(appointment.barber_id) !== Number(userId)) {
+      if (!isResponsibleBarber && !isClientOwner) {
         return res.status(403).json({
-          error: 'Apenas o barbeiro responsavel pode alterar este agendamento.'
+          error: 'Voce nao tem permissao para alterar este agendamento.'
+        });
+      }
+
+      if (!isResponsibleBarber && (service_id !== undefined || start_at !== undefined || date !== undefined)) {
+        return res.status(403).json({
+          error: 'O cliente so pode confirmar o proprio agendamento.'
         });
       }
 
@@ -262,6 +270,18 @@ module.exports = {
 
         if (!allowedStatuses.includes(nextStatus)) {
           return res.status(400).json({ error: 'Status invalido.' });
+        }
+
+        if (!isResponsibleBarber && nextStatus !== 'confirmed') {
+          return res.status(403).json({
+            error: 'O cliente so pode confirmar o proprio agendamento.'
+          });
+        }
+
+        if (appointment.status === 'cancelled' && nextStatus === 'confirmed') {
+          return res.status(400).json({
+            error: 'Nao e possivel confirmar um agendamento cancelado.'
+          });
         }
 
         updates.status = nextStatus;

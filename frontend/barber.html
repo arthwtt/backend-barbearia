@@ -284,10 +284,11 @@
                 if (!appointment) return '';
                 const clientName = appointment.client && appointment.client.name ? appointment.client.name : 'Cliente';
                 const serviceName = appointment.service && appointment.service.name ? appointment.service.name : 'Servico';
+                const statusLabel = appointment.status === 'confirmed' ? 'Confirmado' : 'Pendente';
                 const price = appointment.service && appointment.service.price != null
                     ? ' (' + formatCurrency(appointment.service.price) + ')'
                     : '';
-                return clientName + ' - ' + serviceName + price;
+                return clientName + ' - ' + serviceName + price + ' [' + statusLabel + ']';
             }
 
             function renderSchedule(appointments) {
