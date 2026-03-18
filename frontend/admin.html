@@ -14,6 +14,7 @@
                 <div class="logo">Administracao</div>
                 <div class="user-info admin-nav-links">
                     <a href="barber.html" class="btn-login">Agenda</a>
+                    <a href="reports.html" class="btn-login btn-secondary">Relatorios</a>
                     <a href="#" class="btn-login" id="logoutButton">Sair</a>
                 </div>
             </div>
@@ -101,7 +102,13 @@
                     </label>
                     <label class="admin-field">
                         <span>Duracao (min)</span>
-                        <input type="number" id="serviceDuration" min="5" step="5" required>
+                        <select id="serviceDuration" required>
+                            <option value="15">15 minutos</option>
+                            <option value="20">20 minutos</option>
+                            <option value="30">30 minutos</option>
+                            <option value="45">45 minutos</option>
+                            <option value="60">60 minutos</option>
+                        </select>
                     </label>
                     <button type="submit" class="btn-submit admin-submit" id="serviceSubmitButton">Adicionar Servico</button>
                 </form>

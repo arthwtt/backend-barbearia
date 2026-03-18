@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Relatórios do barbeiro">
+    <title>BARBER.io - Relatórios</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="header barber-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">Relatórios</div>
+                <div class="user-info admin-nav-links">
+                    <a href="barber.html" class="btn-login">Agenda</a>
+                    <a href="admin.html" class="btn-login btn-secondary">Administração</a>
+                    <a href="#" class="btn-login" id="logoutButton">Sair</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container reports-page">
+            <section class="barber-section admin-section">
+                <div class="reports-header">
+                    <div>
+                        <h1 class="barber-section-title">Relatórios e Métricas</h1>
+                        <p class="barber-section-subtitle">Visão consolidada da semana e do mês para apoiar as decisões do negócio.</p>
+                    </div>
+                    <button type="button" class="btn-login btn-secondary" id="refreshReportsButton">Atualizar</button>
+                </div>
+                <p id="reportsMessage" class="admin-message"></p>
+                <div class="reports-summary-grid">
+                    <article class="report-card">
+                        <span class="report-card-label">Agendamentos na semana</span>
+                        <strong class="report-card-value" id="weeklyAppointments">-</strong>
+                    </article>
+                    <article class="report-card">
+                        <span class="report-card-label">Faturamento semanal</span>
+                        <strong class="report-card-value" id="weeklyRevenue">R$ 0,00</strong>
+                    </article>
+                    <article class="report-card">
+                        <span class="report-card-label">Ticket médio</span>
+                        <strong class="report-card-value" id="averageTicket">R$ 0,00</strong>
+                    </article>
+                    <article class="report-card">
+                        <span class="report-card-label">Cancelados na semana</span>
+                        <strong class="report-card-value" id="weeklyCancelled">-</strong>
+                    </article>
+                    <article class="report-card">
+                        <span class="report-card-label">Confirmados na semana</span>
+                        <strong class="report-card-value" id="weeklyConfirmed">-</strong>
+                    </article>
+                    <article class="report-card">
+                        <span class="report-card-label">Faturamento no mês</span>
+                        <strong class="report-card-value" id="monthlyRevenue">R$ 0,00</strong>
+                    </article>
+                </div>
+            </section>
+
+            <section class="reports-grid">
+                <section class="barber-section admin-section">
+                    <div class="barber-panel-header">
+                        <h2 class="barber-section-title">Serviços Mais Solicitados</h2>
+                        <span class="barber-panel-counter">Mês atual</span>
+                    </div>
+                    <div class="admin-list-wrap">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Serviço</th>
+                                    <th>Qtd.</th>
+                                    <th>Receita</th>
+                                </tr>
+                            </thead>
+                            <tbody id="topServicesTableBody"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="barber-section admin-section">
+                    <div class="barber-panel-header">
+                        <h2 class="barber-section-title">Dias Mais Movimentados</h2>
+                        <span class="barber-panel-counter">Mês atual</span>
+                    </div>
+                    <div class="admin-list-wrap">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Dia</th>
+                                    <th>Qtd.</th>
+                                    <th>Receita</th>
+                                </tr>
+                            </thead>
+                            <tbody id="busiestDaysTableBody"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="barber-section admin-section">
+                    <div class="barber-panel-header">
+                        <h2 class="barber-section-title">Horários de Pico</h2>
+                        <span class="barber-panel-counter">Mês atual</span>
+                    </div>
+                    <div class="admin-list-wrap">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Horário</th>
+                                    <th>Qtd.</th>
+                                    <th>Receita</th>
+                                </tr>
+                            </thead>
+                            <tbody id="peakHoursTableBody"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="barber-section admin-section">
+                    <div class="barber-panel-header">
+                        <h2 class="barber-section-title">Próximos Agendamentos</h2>
+                        <span class="barber-panel-counter">Fila futura</span>
+                    </div>
+                    <div id="upcomingAppointmentsList" class="appointments-list barber-appointments-list"></div>
+                    <div id="reportsEmptyState" class="empty-state" style="display:none;">
+                        <p class="empty-state-text">Nenhum próximo agendamento encontrado.</p>
+                    </div>
+                </section>
+            </section>
+        </div>
+    </main>
+
+    <script src="reports.js"></script>
+</body>
+</html>
+

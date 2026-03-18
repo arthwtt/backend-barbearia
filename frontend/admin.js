@@ -138,14 +138,16 @@ async function handleCreateBarber(event) {
   };
 
   try {
-    await fetchJson(`${API_BASE_URL}/barbers`, {
+    const result = await fetchJson(`${API_BASE_URL}/barbers`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify(payload)
     });
 
     document.getElementById('barberForm').reset();
-    setMessage('barbersMessage', 'Barbeiro cadastrado com sucesso.');
+    const totalServices = Number(result && result.default_services_created ? result.default_services_created : 0);
+    const suffix = totalServices ? ` e ${totalServices} servicos padrao foram criados.` : '.';
+    setMessage('barbersMessage', `Barbeiro cadastrado com sucesso${suffix}`);
     await loadBarbers();
   } catch (error) {
     setMessage('barbersMessage', error.message || 'Erro ao cadastrar barbeiro.', true);

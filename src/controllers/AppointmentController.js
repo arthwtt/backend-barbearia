@@ -34,6 +34,16 @@ function normalizeToDbDateTime(input) {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
 
+function isPastDateTime(value) {
+  const normalized = normalizeToDbDateTime(value);
+  if (!normalized) return false;
+
+  const parsed = new Date(normalized.replace(' ', 'T'));
+  if (Number.isNaN(parsed.getTime())) return false;
+
+  return parsed.getTime() < Date.now();
+}
+
 module.exports = {
   async store(req, res) {
     try {
@@ -44,6 +54,12 @@ module.exports = {
       if (!barber_id || !service_id || !appointmentStart) {
         return res.status(400).json({
           error: 'barber_id, service_id e start_at (ou date) sao obrigatorios.'
+        });
+      }
+
+      if (isPastDateTime(appointmentStart)) {
+        return res.status(400).json({
+          error: 'Nao e possivel criar agendamentos em horarios que ja passaram.'
         });
       }
 
@@ -155,6 +171,122 @@ module.exports = {
     } catch (error) {
       console.log(error);
       return res.status(500).json({ error: 'Erro ao buscar agendamentos.' });
+    }
+  },
+
+  async update(req, res) {
+    try {
+      const { id } = req.params;
+      const { userId, userType } = req;
+      const { service_id, start_at, date, status } = req.body;
+
+      const appointment = await Appointment.findByPk(id, {
+        include: [
+          { association: 'client', attributes: ['id', 'name', 'email'] },
+          { association: 'barber', attributes: ['id', 'name'] },
+          { association: 'service', attributes: ['id', 'name', 'price', 'duration_minutes', 'barber_id'] }
+        ]
+      });
+
+      if (!appointment) {
+        return res.status(404).json({ error: 'Agendamento nao encontrado.' });
+      }
+
+      const normalizedUserType = String(userType || '').toLowerCase();
+      const isBarber = normalizedUserType === 'barbeiro' || normalizedUserType === 'barber';
+
+      if (!isBarber || Number(appointment.barber_id) !== Number(userId)) {
+        return res.status(403).json({
+          error: 'Apenas o barbeiro responsavel pode alterar este agendamento.'
+        });
+      }
+
+      const updates = {};
+
+      if (service_id !== undefined) {
+        const nextServiceId = Number(service_id);
+        if (!Number.isInteger(nextServiceId) || nextServiceId <= 0) {
+          return res.status(400).json({ error: 'service_id invalido.' });
+        }
+
+        const service = await Service.findByPk(nextServiceId);
+        if (!service) {
+          return res.status(400).json({ error: 'Servico nao encontrado.' });
+        }
+
+        if (Number(service.barber_id) !== Number(appointment.barber_id)) {
+          return res.status(400).json({
+            error: 'O servico informado nao pertence ao barbeiro deste agendamento.'
+          });
+        }
+
+        updates.service_id = nextServiceId;
+      }
+
+      if (start_at !== undefined || date !== undefined) {
+        const appointmentStart = normalizeToDbDateTime(start_at || date);
+        if (!appointmentStart) {
+          return res.status(400).json({
+            error: 'start_at (ou date) invalido. Use um formato de data valido.'
+          });
+        }
+
+        if (isPastDateTime(appointmentStart)) {
+          return res.status(400).json({
+            error: 'Nao e possivel remarcar para um horario que ja passou.'
+          });
+        }
+
+        const conflict = await Appointment.findOne({
+          where: {
+            id: { [Op.ne]: Number(id) },
+            barber_id: Number(appointment.barber_id),
+            status: { [Op.ne]: 'cancelled' },
+            start_at: appointmentStart
+          }
+        });
+
+        if (conflict) {
+          return res.status(409).json({
+            error: 'Este horario ja foi reservado para este barbeiro.'
+          });
+        }
+
+        updates.start_at = appointmentStart;
+        updates.date = appointmentStart;
+      }
+
+      if (status !== undefined) {
+        const allowedStatuses = ['scheduled', 'confirmed', 'cancelled'];
+        const nextStatus = String(status || '').toLowerCase();
+
+        if (!allowedStatuses.includes(nextStatus)) {
+          return res.status(400).json({ error: 'Status invalido.' });
+        }
+
+        updates.status = nextStatus;
+      }
+
+      if (!Object.keys(updates).length) {
+        return res.status(400).json({
+          error: 'Nenhum campo valido foi informado para atualizacao.'
+        });
+      }
+
+      await appointment.update(updates);
+
+      const updatedAppointment = await Appointment.findByPk(id, {
+        include: [
+          { association: 'client', attributes: ['id', 'name', 'email'] },
+          { association: 'barber', attributes: ['id', 'name'] },
+          { association: 'service', attributes: ['id', 'name', 'price', 'duration_minutes'] }
+        ]
+      });
+
+      return res.status(200).json(updatedAppointment);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: 'Erro ao atualizar agendamento.' });
     }
   },
 

@@ -5,6 +5,7 @@ const TokenController = require('./controllers/TokenController');
 const AppointmentController = require('./controllers/AppointmentController');
 const BarberController = require('./controllers/BarberController');
 const ServiceController = require('./controllers/ServiceController');
+const ReportController = require('./controllers/ReportController');
 
 const authMiddleware = require('../middlewares/auth');
 
@@ -80,6 +81,7 @@ router.post('/barbers', BarberController.store);
 router.post('/services', ServiceController.store);
 router.put('/services/:id', ServiceController.update);
 router.delete('/services/:id', ServiceController.delete);
+router.get('/reports/overview', ReportController.overview);
 
 /**
  * @swagger
@@ -137,6 +139,7 @@ router.post('/appointments', AppointmentController.store);
  *         description: Lista retornada com sucesso
  */
 router.get('/appointments', AppointmentController.index);
+router.put('/appointments/:id', AppointmentController.update);
 
 /**
  * @swagger

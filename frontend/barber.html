@@ -13,6 +13,7 @@
             <div class="header-content">
                 <div class="logo">Painel do Barbeiro</div>
                 <div class="user-info">
+                    <a href="reports.html" class="btn-login btn-secondary">Relatorios</a>
                     <a href="admin.html" class="btn-login">Administracao</a>
                     <a href="#" class="btn-login" id="logoutButton">Sair</a>
                 </div>
@@ -26,30 +27,116 @@
                 <h2 class="barber-section-title">Painel</h2>
                 <div class="dashboard-cards">
                     <div class="dashboard-card">
-                        <div class="card-title">Agendamentos</div>
+                        <div class="card-title">Agendamentos Ativos</div>
                         <div class="card-value" id="appointmentsCount">-</div>
                     </div>
                     <div class="dashboard-card">
                         <div class="card-title">Faturamento</div>
                         <div class="card-value" id="dailyRevenue">R$ 0,00</div>
                     </div>
-                  
+                    <div class="dashboard-card">
+                        <div class="card-title">Confirmados</div>
+                        <div class="card-value" id="confirmedCount">-</div>
+                    </div>
                 </div>
             </section>
 
             <section class="barber-section schedule-section">
-                <h2 class="barber-section-title">Agenda de Hoje</h2>
-                <p id="barberScheduleMessage" style="min-height: 20px; margin-bottom: 10px; color: #ff6b6b;"></p>
+                <div class="barber-section-header">
+                    <div>
+                        <h2 class="barber-section-title">Agenda</h2>
+                        <p class="barber-section-subtitle">Filtre o dia e gerencie os agendamentos diretamente pelo painel.</p>
+                    </div>
+                    <div class="barber-filters">
+                        <label class="barber-filter-field">
+                            <span>Data</span>
+                            <input type="date" id="scheduleDate">
+                        </label>
+                        <label class="barber-filter-field">
+                            <span>Status</span>
+                            <select id="statusFilter">
+                                <option value="active">Ativos</option>
+                                <option value="all">Todos</option>
+                                <option value="scheduled">Agendados</option>
+                                <option value="confirmed">Confirmados</option>
+                                <option value="cancelled">Cancelados</option>
+                            </select>
+                        </label>
+                        <button type="button" class="btn-login btn-secondary" id="refreshScheduleButton">Atualizar</button>
+                    </div>
+                </div>
+                <p id="barberScheduleMessage" class="appointments-message"></p>
                 <div class="schedule-grid" id="scheduleGrid">
                     <div class="time-slot header">Horario</div>
                     <div class="event-slot header">Agendamento</div>
                 </div>
             </section>
 
+            <section class="barber-section barber-management-section">
+                <div class="barber-management-grid">
+                    <div class="barber-management-panel">
+                        <div class="barber-panel-header">
+                            <h2 class="barber-section-title">Agendamentos</h2>
+                            <span class="barber-panel-counter" id="appointmentsListCount">0 itens</span>
+                        </div>
+                        <div id="appointmentsList" class="appointments-list barber-appointments-list"></div>
+                        <div id="barberEmptyState" class="empty-state" style="display:none;">
+                            <p class="empty-state-text">Nenhum agendamento encontrado para os filtros selecionados.</p>
+                        </div>
+                    </div>
+
+                    <div class="barber-management-panel">
+                        <div class="barber-panel-header">
+                            <h2 class="barber-section-title">Editar Agendamento</h2>
+                            <span class="barber-panel-counter" id="selectedAppointmentLabel">Nenhum selecionado</span>
+                        </div>
+                        <p id="barberFormMessage" class="appointments-message"></p>
+                        <form id="appointmentForm" class="barber-edit-form">
+                            <input type="hidden" id="appointmentId">
+                            <div class="admin-form-grid barber-form-grid">
+                                <label class="admin-field">
+                                    <span>Cliente</span>
+                                    <input type="text" id="clientName" readonly>
+                                </label>
+                                <label class="admin-field">
+                                    <span>Email</span>
+                                    <input type="text" id="clientEmail" readonly>
+                                </label>
+                                <label class="admin-field">
+                                    <span>Servico</span>
+                                    <select id="serviceId" required></select>
+                                </label>
+                                <label class="admin-field">
+                                    <span>Status</span>
+                                    <select id="appointmentStatus" required>
+                                        <option value="scheduled">Agendado</option>
+                                        <option value="confirmed">Confirmado</option>
+                                        <option value="cancelled">Cancelado</option>
+                                    </select>
+                                </label>
+                                <label class="admin-field">
+                                    <span>Data</span>
+                                    <input type="date" id="appointmentDate" required>
+                                </label>
+                                <label class="admin-field">
+                                    <span>Horario</span>
+                                    <input type="time" id="appointmentTime" step="1800" required>
+                                </label>
+                            </div>
+                            <div class="barber-form-actions">
+                                <button type="submit" class="admin-submit" id="saveAppointmentButton">Salvar alteracoes</button>
+                                <button type="button" class="btn-login btn-secondary" id="resetAppointmentFormButton">Limpar selecao</button>
+                                <button type="button" class="btn-cancel-appointment" id="deleteAppointmentButton" disabled>Excluir agendamento</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
             <section class="barber-section finance-section">
                 <h2 class="barber-section-title">Resumo Financeiro</h2>
                 <div class="financial-summary">
-                    <p>Total do dia: <span class="total" id="financialTotal">R$ 0,00</span></p>
+                    <p>Total do filtro atual: <span class="total" id="financialTotal">R$ 0,00</span></p>
                 </div>
             </section>
         </div>
@@ -58,6 +145,13 @@
     <script>
         (function setupBarberPageAuth() {
             const API_BASE_URL = localStorage.getItem('apiBaseUrl') || 'http://localhost:3000';
+            const state = {
+                token: null,
+                user: null,
+                services: [],
+                appointments: [],
+                selectedAppointmentId: null
+            };
 
             function normalizeUserType(type) {
                 const value = String(type || '').toLowerCase();
@@ -73,6 +167,13 @@
                 messageElement.style.color = isError ? '#ff6b6b' : '#7ed957';
             }
 
+            function setFormMessage(message, isError) {
+                const messageElement = document.getElementById('barberFormMessage');
+                if (!messageElement) return;
+                messageElement.textContent = message || '';
+                messageElement.style.color = isError ? '#ff6b6b' : '#7ed957';
+            }
+
             function formatCurrency(value) {
                 return 'R$ ' + Number(value || 0).toFixed(2).replace('.', ',');
             }
@@ -82,6 +183,25 @@
                 const month = String(date.getMonth() + 1).padStart(2, '0');
                 const day = String(date.getDate()).padStart(2, '0');
                 return year + '-' + month + '-' + day;
+            }
+
+            function formatDateForInput(value) {
+                if (!value) return '';
+                const parsed = new Date(value);
+                if (Number.isNaN(parsed.getTime())) return '';
+                return formatDateISO(parsed);
+            }
+
+            function formatDateTime(value) {
+                if (!value) return '-';
+                const parsed = new Date(value);
+                if (Number.isNaN(parsed.getTime())) return String(value);
+                const day = String(parsed.getDate()).padStart(2, '0');
+                const month = String(parsed.getMonth() + 1).padStart(2, '0');
+                const year = parsed.getFullYear();
+                const hours = String(parsed.getHours()).padStart(2, '0');
+                const minutes = String(parsed.getMinutes()).padStart(2, '0');
+                return day + '/' + month + '/' + year + ' as ' + hours + ':' + minutes;
             }
 
             function buildDaySlots(startHour, endHour, stepMinutes) {
@@ -129,8 +249,31 @@
                 return hours + ':' + minutes;
             }
 
+            function getStatusLabel(status) {
+                const map = {
+                    scheduled: 'Agendado',
+                    confirmed: 'Confirmado',
+                    cancelled: 'Cancelado'
+                };
+                return map[status] || 'Agendado';
+            }
+
+            function getStatusClass(status) {
+                if (status === 'cancelled') return 'status-cancelled';
+                if (status === 'confirmed') return 'status-confirmed';
+                return 'status-scheduled';
+            }
+
+            function getAuthHeaders() {
+                return {
+                    'Content-Type': 'application/json',
+                    Authorization: 'Bearer ' + state.token
+                };
+            }
+
             function mapAppointmentsByTime(appointments) {
                 return appointments.reduce(function (acc, appointment) {
+                    if (appointment.status === 'cancelled') return acc;
                     const key = extractHHMM(appointment.start_at);
                     if (key) acc[key] = appointment;
                     return acc;
@@ -161,7 +304,7 @@
                 slots.forEach(function (slot) {
                     const appointment = byTime[slot];
                     rows.push('<div class="time-slot">' + slot + '</div>');
-                    rows.push('<div class="event-slot ' + (appointment ? 'event-slot-booked' : 'event-slot-empty') + '">' + buildEventText(appointment) + '</div>');
+                    rows.push('<div class="event-slot ' + (appointment ? 'event-slot-booked' : 'event-slot-empty') + '">' + (appointment ? buildEventText(appointment) : 'Livre') + '</div>');
                 });
 
                 grid.innerHTML = rows.join('');
@@ -171,50 +314,284 @@
                 const appointmentsCount = document.getElementById('appointmentsCount');
                 const dailyRevenue = document.getElementById('dailyRevenue');
                 const financialTotal = document.getElementById('financialTotal');
-
-                const total = appointments.reduce(function (sum, item) {
+                const confirmedCount = document.getElementById('confirmedCount');
+                const activeAppointments = appointments.filter(function (appointment) {
+                    return appointment.status !== 'cancelled';
+                });
+                const total = activeAppointments.reduce(function (sum, item) {
                     return sum + Number(item.service && item.service.price ? item.service.price : 0);
                 }, 0);
+                const confirmedTotal = appointments.filter(function (appointment) {
+                    return appointment.status === 'confirmed';
+                }).length;
 
-                if (appointmentsCount) appointmentsCount.textContent = String(appointments.length);
+                if (appointmentsCount) appointmentsCount.textContent = String(activeAppointments.length);
                 if (dailyRevenue) dailyRevenue.textContent = formatCurrency(total);
                 if (financialTotal) financialTotal.textContent = formatCurrency(total);
+                if (confirmedCount) confirmedCount.textContent = String(confirmedTotal);
             }
 
-            async function fetchAppointmentsForToday(token) {
-                const today = formatDateISO(new Date());
-                const response = await fetch(API_BASE_URL + '/appointments?date=' + today, {
-                    headers: {
-                        Authorization: 'Bearer ' + token
-                    }
-                });
+            function renderServiceOptions() {
+                const serviceSelect = document.getElementById('serviceId');
+                if (!serviceSelect) return;
 
-                const data = await response.json().catch(function () { return []; });
-                if (!response.ok) {
-                    const errorMessage = data && data.error ? data.error : 'Erro ao carregar agenda.';
-                    throw new Error(errorMessage);
+                if (!state.services.length) {
+                    serviceSelect.innerHTML = '<option value="">Nenhum servico disponivel</option>';
+                    return;
                 }
 
+                serviceSelect.innerHTML = state.services.map(function (service) {
+                    return '<option value="' + service.id + '">' + service.name + ' - ' + formatCurrency(service.price) + '</option>';
+                }).join('');
+            }
+
+            function updateSelectedLabel(appointment) {
+                const label = document.getElementById('selectedAppointmentLabel');
+                if (!label) return;
+                label.textContent = appointment
+                    ? '#' + appointment.id + ' - ' + (appointment.client && appointment.client.name ? appointment.client.name : 'Cliente')
+                    : 'Nenhum selecionado';
+            }
+
+            function resetAppointmentForm() {
+                document.getElementById('appointmentId').value = '';
+                document.getElementById('clientName').value = '';
+                document.getElementById('clientEmail').value = '';
+                document.getElementById('appointmentDate').value = document.getElementById('scheduleDate').value || formatDateISO(new Date());
+                document.getElementById('appointmentTime').value = '';
+                document.getElementById('appointmentStatus').value = 'scheduled';
+                document.getElementById('deleteAppointmentButton').disabled = true;
+                state.selectedAppointmentId = null;
+                if (state.services.length) {
+                    document.getElementById('serviceId').value = String(state.services[0].id);
+                }
+                updateSelectedLabel(null);
+                setFormMessage('', false);
+
+                document.querySelectorAll('.barber-appointment-card').forEach(function (card) {
+                    card.classList.remove('selected');
+                });
+            }
+
+            function fillAppointmentForm(appointmentId) {
+                const appointment = state.appointments.find(function (item) {
+                    return Number(item.id) === Number(appointmentId);
+                });
+
+                if (!appointment) return;
+
+                state.selectedAppointmentId = Number(appointment.id);
+                document.getElementById('appointmentId').value = String(appointment.id);
+                document.getElementById('clientName').value = appointment.client && appointment.client.name ? appointment.client.name : '';
+                document.getElementById('clientEmail').value = appointment.client && appointment.client.email ? appointment.client.email : '';
+                document.getElementById('serviceId').value = String(appointment.service_id || (appointment.service && appointment.service.id) || '');
+                document.getElementById('appointmentStatus').value = appointment.status || 'scheduled';
+                document.getElementById('appointmentDate').value = formatDateForInput(appointment.start_at);
+                document.getElementById('appointmentTime').value = extractHHMM(appointment.start_at) || '';
+                document.getElementById('deleteAppointmentButton').disabled = appointment.status === 'cancelled';
+                updateSelectedLabel(appointment);
+                setFormMessage('', false);
+
+                document.querySelectorAll('.barber-appointment-card').forEach(function (card) {
+                    card.classList.toggle('selected', Number(card.dataset.id) === Number(appointment.id));
+                });
+            }
+
+            function renderAppointmentsList(appointments) {
+                const list = document.getElementById('appointmentsList');
+                const emptyState = document.getElementById('barberEmptyState');
+                const count = document.getElementById('appointmentsListCount');
+
+                if (!list) return;
+
+                if (count) {
+                    count.textContent = appointments.length + (appointments.length === 1 ? ' item' : ' itens');
+                }
+
+                if (!appointments.length) {
+                    list.innerHTML = '';
+                    if (emptyState) emptyState.style.display = 'block';
+                    return;
+                }
+
+                if (emptyState) emptyState.style.display = 'none';
+                list.innerHTML = appointments.map(function (appointment) {
+                    const clientName = appointment.client && appointment.client.name ? appointment.client.name : 'Cliente';
+                    const serviceName = appointment.service && appointment.service.name ? appointment.service.name : 'Servico';
+                    const price = appointment.service && appointment.service.price != null ? '<p class="appointment-price">' + formatCurrency(appointment.service.price) + '</p>' : '';
+                    const selectedClass = Number(appointment.id) === Number(state.selectedAppointmentId) ? ' selected' : '';
+
+                    return ''
+                        + '<article class="appointment-card appointment-card-client barber-appointment-card ' + getStatusClass(appointment.status) + selectedClass + '" data-id="' + appointment.id + '">'
+                        + '<div class="appointment-details">'
+                        + '<div class="barber-appointment-header">'
+                        + '<h3 class="appointment-service">' + serviceName + '</h3>'
+                        + '<span class="appointment-status ' + getStatusClass(appointment.status) + '">' + getStatusLabel(appointment.status) + '</span>'
+                        + '</div>'
+                        + '<p class="appointment-barber">Cliente: ' + clientName + '</p>'
+                        + '<p class="appointment-datetime">' + formatDateTime(appointment.start_at) + '</p>'
+                        + price
+                        + '</div>'
+                        + '<div class="barber-card-actions">'
+                        + '<button type="button" class="admin-action-btn" data-action="edit" data-id="' + appointment.id + '">Editar</button>'
+                        + '<button type="button" class="btn-cancel-appointment" data-action="delete" data-id="' + appointment.id + '"' + (appointment.status === 'cancelled' ? ' disabled' : '') + '>Excluir</button>'
+                        + '</div>'
+                        + '</article>';
+                }).join('');
+            }
+
+            async function fetchJson(url, options) {
+                const response = await fetch(url, options);
+                const data = await response.json().catch(function () { return {}; });
+                if (!response.ok) {
+                    throw new Error(data && data.error ? data.error : 'Erro na requisicao.');
+                }
+                return data;
+            }
+
+            async function fetchServices() {
+                const data = await fetchJson(API_BASE_URL + '/services?barber_id=' + state.user.id, {
+                    headers: {
+                        Authorization: 'Bearer ' + state.token
+                    }
+                });
                 return Array.isArray(data) ? data : [];
             }
 
-            async function loadRealSchedule(token) {
-                setScheduleMessage('Carregando agenda de hoje...', false);
-                try {
-                    const appointments = await fetchAppointmentsForToday(token);
-                    renderSchedule(appointments);
-                    updateSummary(appointments);
+            async function fetchAppointments() {
+                const selectedDate = document.getElementById('scheduleDate').value || formatDateISO(new Date());
+                const statusFilter = document.getElementById('statusFilter').value;
+                let url = API_BASE_URL + '/appointments?date=' + selectedDate;
 
-                    if (!appointments.length) {
-                        setScheduleMessage('Nenhum agendamento para hoje.', false);
+                if (statusFilter === 'all' || statusFilter === 'cancelled' || statusFilter === 'scheduled' || statusFilter === 'confirmed') {
+                    url += '&status=' + encodeURIComponent(statusFilter);
+                } else {
+                    url += '&status=all';
+                }
+
+                const data = await fetchJson(url, {
+                    headers: {
+                        Authorization: 'Bearer ' + state.token
+                    }
+                });
+
+                if (!Array.isArray(data)) return [];
+
+                if (statusFilter === 'active') {
+                    return data.filter(function (appointment) {
+                        return appointment.status !== 'cancelled';
+                    });
+                }
+
+                return data;
+            }
+
+            async function updateAppointment(appointmentId, payload) {
+                return fetchJson(API_BASE_URL + '/appointments/' + appointmentId, {
+                    method: 'PUT',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify(payload)
+                });
+            }
+
+            async function deleteAppointment(appointmentId) {
+                return fetchJson(API_BASE_URL + '/appointments/' + appointmentId, {
+                    method: 'DELETE',
+                    headers: {
+                        Authorization: 'Bearer ' + state.token
+                    }
+                });
+            }
+
+            async function loadBarberData() {
+                setScheduleMessage('Carregando agenda...', false);
+                try {
+                    state.appointments = await fetchAppointments();
+                    renderSchedule(state.appointments);
+                    renderAppointmentsList(state.appointments);
+                    updateSummary(state.appointments);
+
+                    if (!state.appointments.length) {
+                        setScheduleMessage('Nenhum agendamento para os filtros selecionados.', false);
+                    } else {
+                        setScheduleMessage('', false);
+                    }
+                } catch (error) {
+                    renderSchedule([]);
+                    renderAppointmentsList([]);
+                    updateSummary([]);
+                    setScheduleMessage(error.message || 'Falha ao carregar agenda.', true);
+                }
+            }
+
+            async function handleAppointmentSubmit(event) {
+                event.preventDefault();
+                const appointmentId = Number(document.getElementById('appointmentId').value);
+                if (!appointmentId) {
+                    setFormMessage('Selecione um agendamento para editar.', true);
+                    return;
+                }
+
+                const payload = {
+                    service_id: Number(document.getElementById('serviceId').value),
+                    status: document.getElementById('appointmentStatus').value,
+                    start_at: document.getElementById('appointmentDate').value + 'T' + document.getElementById('appointmentTime').value
+                };
+
+                const saveButton = document.getElementById('saveAppointmentButton');
+                try {
+                    saveButton.disabled = true;
+                    saveButton.textContent = 'Salvando...';
+                    await updateAppointment(appointmentId, payload);
+                    setFormMessage('Agendamento atualizado com sucesso.', false);
+                    await loadBarberData();
+                    fillAppointmentForm(appointmentId);
+                } catch (error) {
+                    setFormMessage(error.message || 'Erro ao atualizar agendamento.', true);
+                } finally {
+                    saveButton.disabled = false;
+                    saveButton.textContent = 'Salvar alteracoes';
+                }
+            }
+
+            async function handleDeleteAppointment(appointmentId) {
+                if (!appointmentId) {
+                    setFormMessage('Selecione um agendamento para excluir.', true);
+                    return;
+                }
+
+                if (!window.confirm('Deseja realmente excluir este agendamento?')) {
+                    return;
+                }
+
+                try {
+                    await deleteAppointment(appointmentId);
+                    setFormMessage('Agendamento cancelado com sucesso.', false);
+                    resetAppointmentForm();
+                    await loadBarberData();
+                } catch (error) {
+                    setFormMessage(error.message || 'Erro ao excluir agendamento.', true);
+                }
+            }
+
+            function handleAppointmentsListClick(event) {
+                const actionButton = event.target.closest('button[data-action]');
+                if (actionButton) {
+                    const appointmentId = Number(actionButton.dataset.id);
+                    if (actionButton.dataset.action === 'edit') {
+                        fillAppointmentForm(appointmentId);
                         return;
                     }
 
-                    setScheduleMessage('', false);
-                } catch (error) {
-                    renderSchedule([]);
-                    updateSummary([]);
-                    setScheduleMessage(error.message || 'Falha ao carregar agenda.', true);
+                    if (actionButton.dataset.action === 'delete') {
+                        handleDeleteAppointment(appointmentId);
+                        return;
+                    }
+                }
+
+                const card = event.target.closest('.barber-appointment-card');
+                if (card) {
+                    fillAppointmentForm(Number(card.dataset.id));
                 }
             }
 
@@ -237,7 +614,38 @@
                 return;
             }
 
-            loadRealSchedule(token);
+            state.token = token;
+            state.user = user;
+
+            document.getElementById('scheduleDate').value = formatDateISO(new Date());
+
+            Promise.all([fetchServices(), loadBarberData()])
+                .then(function (results) {
+                    state.services = Array.isArray(results[0]) ? results[0] : [];
+                    renderServiceOptions();
+                    resetAppointmentForm();
+                })
+                .catch(function (error) {
+                    setScheduleMessage(error.message || 'Falha ao carregar dados do painel.', true);
+                    renderServiceOptions();
+                    resetAppointmentForm();
+                });
+
+            document.getElementById('refreshScheduleButton').addEventListener('click', loadBarberData);
+            document.getElementById('scheduleDate').addEventListener('change', function () {
+                resetAppointmentForm();
+                loadBarberData();
+            });
+            document.getElementById('statusFilter').addEventListener('change', function () {
+                resetAppointmentForm();
+                loadBarberData();
+            });
+            document.getElementById('appointmentForm').addEventListener('submit', handleAppointmentSubmit);
+            document.getElementById('resetAppointmentFormButton').addEventListener('click', resetAppointmentForm);
+            document.getElementById('deleteAppointmentButton').addEventListener('click', function () {
+                handleDeleteAppointment(Number(document.getElementById('appointmentId').value));
+            });
+            document.getElementById('appointmentsList').addEventListener('click', handleAppointmentsListClick);
 
             const logoutButton = document.getElementById('logoutButton');
             logoutButton.addEventListener('click', function (e) {

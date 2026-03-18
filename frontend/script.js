@@ -30,11 +30,13 @@ function normalizeUserType(type) {
   return value;
 }
 
-function setBookingMessage(message, isError = false) {
+function setBookingMessage(message, variant = 'info') {
   const messageElement = document.getElementById('bookingMessage');
   if (!messageElement) return;
   messageElement.textContent = message || '';
-  messageElement.style.color = isError ? '#ff6b6b' : '#fecf46';
+  messageElement.className = 'booking-message';
+  if (!message) return;
+  messageElement.classList.add(`is-${variant}`);
 }
 
 function formatCurrency(value) {
@@ -50,13 +52,14 @@ function updateConfirmButton() {
   const confirmBtn = document.getElementById('confirmBtn');
   const hasToken = Boolean(getAuthToken());
   const isClient = normalizeUserType(getAuthUser()?.type) === 'client';
+  const selectedSlotIsValid = !isSelectedDateTimeInPast(state.selectedDate, state.selectedTime);
 
   const allSelected = state.selectedService &&
     state.selectedProfessional &&
     state.selectedDate &&
     state.selectedTime;
 
-  confirmBtn.disabled = !(allSelected && hasToken && isClient);
+  confirmBtn.disabled = !(allSelected && hasToken && isClient && selectedSlotIsValid);
 }
 
 function resetBooking() {
@@ -104,15 +107,42 @@ function extractHHMMFromDate(value) {
   return `${hours}:${minutes}`;
 }
 
+function buildLocalDateTime(date, time) {
+  if (!date || !time) return null;
+  const [year, month, day] = String(date).split('-').map(Number);
+  const [hours, minutes] = String(time).split(':').map(Number);
+  if (!year || !month || !day || hours == null || minutes == null) return null;
+  return new Date(year, month - 1, day, hours, minutes, 0, 0);
+}
+
+function isSelectedDateTimeInPast(date, time) {
+  const slotDateTime = buildLocalDateTime(date, time);
+  if (!slotDateTime || Number.isNaN(slotDateTime.getTime())) return false;
+  return slotDateTime.getTime() < Date.now();
+}
+
+function isTodaySelected() {
+  if (!state.selectedDate) return false;
+  const now = new Date();
+  const today = [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, '0'),
+    String(now.getDate()).padStart(2, '0')
+  ].join('-');
+  return state.selectedDate === today;
+}
+
 function applyOccupiedTimesToSlots() {
   const occupied = new Set(state.occupiedTimes);
 
   document.querySelectorAll('.time-slot').forEach((slot) => {
     const isOccupied = occupied.has(slot.dataset.time);
-    slot.classList.toggle('unavailable', isOccupied);
-    slot.disabled = isOccupied;
+    const isPast = isSelectedDateTimeInPast(state.selectedDate, slot.dataset.time);
+    slot.classList.toggle('unavailable', isOccupied || isPast);
+    slot.classList.toggle('past-slot', isPast);
+    slot.disabled = isOccupied || isPast;
 
-    if (isOccupied && slot.classList.contains('selected')) {
+    if ((isOccupied || isPast) && slot.classList.contains('selected')) {
       slot.classList.remove('selected');
       state.selectedTime = null;
     }
@@ -162,7 +192,7 @@ function renderProfessionals() {
       applyOccupiedTimesToSlots();
       updateTotalPrice();
       updateConfirmButton();
-      setBookingMessage('');
+      setBookingMessage('Profissional selecionado. Agora escolha o servico e o horario desejado.');
 
       loadServices(barberId);
       loadOccupiedTimes();
@@ -203,7 +233,7 @@ function renderServices() {
 
       updateTotalPrice();
       updateConfirmButton();
-      setBookingMessage('');
+      setBookingMessage('Servico selecionado. Falta escolher a data e um horario disponivel.');
     });
   });
 }
@@ -243,7 +273,11 @@ function renderDates() {
       state.selectedTime = null;
       document.querySelectorAll('.time-slot.selected').forEach((item) => item.classList.remove('selected'));
       updateConfirmButton();
-      setBookingMessage('');
+      setBookingMessage(
+        isTodaySelected()
+          ? 'Horarios que ja passaram foram bloqueados automaticamente para hoje.'
+          : 'Data selecionada. Escolha um horario disponivel.'
+      );
       loadOccupiedTimes();
     });
   });
@@ -257,7 +291,7 @@ function setupTimeSelection() {
       this.classList.add('selected');
       state.selectedTime = this.dataset.time;
       updateConfirmButton();
-      setBookingMessage('');
+      setBookingMessage(`Horario ${state.selectedTime} selecionado. Revise e confirme o agendamento.`);
     });
   });
 }
@@ -316,7 +350,7 @@ async function loadOccupiedTimes() {
       .filter(Boolean);
   } catch (error) {
     state.occupiedTimes = [];
-    setBookingMessage(error.message || 'Nao foi possivel carregar horarios ocupados.', true);
+    setBookingMessage(error.message || 'Nao foi possivel carregar horarios ocupados.', 'error');
   }
 
   applyOccupiedTimesToSlots();
@@ -329,9 +363,13 @@ function buildAppointmentStartAt(date, time) {
 async function createAppointment() {
   const token = getAuthToken();
   if (!token) {
-    setBookingMessage('Voce precisa fazer login para agendar.', true);
+    setBookingMessage('Voce precisa fazer login para agendar.', 'error');
     window.location.href = 'login.html';
     return;
+  }
+
+  if (isSelectedDateTimeInPast(state.selectedDate, state.selectedTime)) {
+    throw new Error('Esse horario ja passou. Escolha outro horario disponivel.');
   }
 
   const payload = {
@@ -358,11 +396,13 @@ function setupConfirmButton() {
     try {
       confirmBtn.disabled = true;
       confirmBtn.textContent = 'Confirmando...';
+      setBookingMessage('Enviando agendamento...');
       await createAppointment();
-      setBookingMessage('Agendamento confirmado com sucesso.');
+      const successMessage = `Agendamento confirmado para ${state.selectedDate} as ${state.selectedTime} com ${state.selectedProfessional.name}.`;
       resetBooking();
+      setBookingMessage(successMessage, 'success');
     } catch (error) {
-      setBookingMessage(error.message || 'Erro ao confirmar agendamento.', true);
+      setBookingMessage(error.message || 'Erro ao confirmar agendamento.', 'error');
       updateConfirmButton();
     } finally {
       confirmBtn.textContent = 'Confirmar Agendamento';
@@ -377,12 +417,12 @@ function validateAccessForBooking() {
   const role = normalizeUserType(user?.type);
 
   if (!token || !user) {
-    setBookingMessage('Entre na conta para agendar.');
+    setBookingMessage('Entre na conta para realizar um agendamento.');
     return;
   }
 
   if (role !== 'client') {
-    setBookingMessage('Apenas clientes podem criar agendamentos nesta tela.', true);
+    setBookingMessage('Apenas clientes podem criar agendamentos nesta tela.', 'error');
     return;
   }
 }
@@ -399,7 +439,7 @@ async function initializeApp() {
     await loadBarbers();
     renderServices();
   } catch (error) {
-    setBookingMessage(error.message || 'Erro ao carregar dados iniciais.', true);
+    setBookingMessage(error.message || 'Erro ao carregar dados iniciais.', 'error');
   }
 }
 

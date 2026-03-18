@@ -379,6 +379,11 @@ body {
     transform: none;
 }
 
+.times-grid .time-slot.past-slot {
+    background-color: #6d6d6d;
+    color: #d9d9d9;
+}
+
 .spacing-bottom {
     height: 40px;
 }
@@ -392,6 +397,33 @@ body {
     padding: var(--spacing-md);
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
     z-index: 99;
+}
+
+.booking-message {
+    min-height: 22px;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    color: #d6d6d6;
+}
+
+.booking-message.is-info {
+    background-color: rgba(254, 207, 70, 0.12);
+    color: #fecf46;
+    border: 1px solid rgba(254, 207, 70, 0.3);
+}
+
+.booking-message.is-success {
+    background-color: rgba(126, 217, 87, 0.12);
+    color: #7ed957;
+    border: 1px solid rgba(126, 217, 87, 0.3);
+}
+
+.booking-message.is-error {
+    background-color: rgba(255, 107, 107, 0.12);
+    color: #ff9b9b;
+    border: 1px solid rgba(255, 107, 107, 0.3);
 }
 
 .summary-content {
@@ -1107,6 +1139,170 @@ body {
     gap: 8px;
 }
 
+.barber-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+}
+
+.barber-section-subtitle {
+    color: #b6b6b6;
+    margin-top: 4px;
+}
+
+.barber-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+    align-items: end;
+}
+
+.barber-filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: #d4d4d4;
+    font-size: 0.9rem;
+}
+
+.barber-filter-field input,
+.barber-filter-field select,
+.barber-edit-form select,
+.barber-edit-form input {
+    min-width: 150px;
+    border: 1px solid #3a3a3a;
+    background: #0f0f0f;
+    color: #fff;
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+
+.barber-management-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: var(--spacing-lg);
+}
+
+.barber-management-panel {
+    background: #141414;
+    border: 1px solid #2b2b2b;
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+}
+
+.barber-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+.barber-panel-counter {
+    color: #b6b6b6;
+    font-size: 0.9rem;
+}
+
+.barber-appointments-list {
+    display: grid;
+    grid-template-columns: 1fr;
+}
+
+.barber-appointment-card {
+    border: 1px solid transparent;
+    transition: var(--transition);
+}
+
+.barber-appointment-card.selected {
+    border-color: var(--color-orange);
+    box-shadow: 0 0 0 1px rgba(255, 107, 53, 0.35);
+}
+
+.barber-appointment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+}
+
+.barber-card-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.barber-form-grid {
+    margin-bottom: var(--spacing-md);
+}
+
+.barber-form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+    align-items: center;
+}
+
+.reports-page {
+    display: grid;
+    gap: var(--spacing-lg);
+}
+
+.reports-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+}
+
+.reports-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.report-card {
+    background: linear-gradient(180deg, #1b1b1b, #101010);
+    border: 1px solid #2e2e2e;
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.report-card-label {
+    color: #b9b9b9;
+    font-size: 0.9rem;
+}
+
+.report-card-value {
+    font-size: 1.7rem;
+    color: var(--color-orange);
+}
+
+.reports-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--spacing-lg);
+}
+
+@media (max-width: 900px) {
+    .barber-section-header,
+    .barber-panel-header,
+    .reports-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .barber-management-grid,
+    .reports-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 @media (max-width: 768px) {
     .admin-form-grid {
         grid-template-columns: 1fr;
@@ -1114,5 +1310,12 @@ body {
 
     .admin-submit {
         width: 100%;
+    }
+
+    .barber-card-actions,
+    .barber-form-actions,
+    .barber-filters {
+        flex-direction: column;
+        align-items: stretch;
     }
 }
